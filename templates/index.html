@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SENTIVERSE AI</title>
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            margin: 0; 
+            padding: 0; 
+            background-color: black; 
+            color: gold; 
+        }
+        .chat-container { 
+            max-width: 600px; 
+            margin: 50px auto; 
+            padding: 10px; 
+            background: linear-gradient(to bottom right, black, green); 
+            box-shadow: 0 0 15px rgba(0,0,0,0.5); 
+            border-radius: 10px; 
+            border: 2px solid gold; 
+            transform: perspective(1px) translateZ(0); /* 3D effect */
+        }
+        .header { 
+            text-align: center; 
+            padding: 10px 0; 
+            font-size: 36px; 
+            font-weight: bold; 
+            color: white; 
+            border-bottom: 2px solid gold; 
+            text-shadow: 0 0 3px gold, 0 0 5px gold; 
+            font-family: Impact, sans-serif; 
+        }
+        .chat-box { 
+            width: 100%; 
+            height: 400px; 
+            border: 1px solid gold; 
+            overflow-y: scroll; 
+            margin-bottom: 10px; 
+            padding: 10px; 
+            background: rgba(0, 0, 0, 0.5); 
+            border-radius: 10px; 
+            box-shadow: inset 0 0 10px rgba(0,0,0,0.5); /* 3D effect */
+        }
+        .message { 
+            margin: 10px 0; 
+            padding: 10px 15px; 
+            border-radius: 4px; 
+            max-width: 80%; 
+            font-weight: bold; 
+            word-wrap: break-word; 
+            border: 1px solid gold; 
+            color: black; 
+            text-shadow: 0 0 3px gold, 0 0 5px gold; 
+            box-shadow: 0 5px 10px rgba(0,0,0,0.5); /* 3D effect */
+        }
+        .user-message { 
+            text-align: right; 
+            background-color: #2e8b57; 
+            float: right; 
+            clear: both; 
+        }
+        .bot-message { 
+            text-align: left; 
+            background-color: #006400; 
+            float: left; 
+            clear: both; 
+            color: black; 
+        }
+        .input-container { 
+            display: flex; 
+            justify-content: space-between; 
+            padding-top: 10px; 
+        }
+        .input-container input { 
+            flex: 1; 
+            padding: 10px; 
+            font-size: 16px; 
+            background-color: white; 
+            color: black; 
+            border: 1px solid gold; 
+            border-radius: 4px; 
+            text-shadow: none; 
+            box-shadow: 0 5px 10px rgba(0,0,0,0.5); /* 3D effect */
+        }
+        .input-container button { 
+            padding: 10px 20px; 
+            font-size: 16px; 
+            background-color: darkgreen; 
+            color: white; 
+            border: 1px solid gold; 
+            border-radius: 4px; 
+            cursor: pointer; 
+            margin-left: 10px; 
+            font-family: Impact, sans-serif; 
+            text-shadow: none; 
+            text-transform: uppercase; 
+            box-shadow: 0 5px 10px rgba(0,0,0,0.5); /* 3D effect */
+        }
+        .input-container button:hover { 
+            background-color: forestgreen; 
+            color: gold; 
+        }
+        .formatted-content .title {
+            font-weight: bold;
+            display: block;
+        }
+        .formatted-content .description {
+            font-weight: normal;
+            display: block;
+            margin-left: 20px;
+        }
+        @keyframes fadeInOut {
+            0%, 100% { opacity: 0; }
+            50% { opacity: 1; }
+        }
+        .loading {
+            text-align: center;
+            font-size: 24px;
+            color: white;
+            padding: 10px;
+            font-family: Impact, sans-serif;
+            text-shadow: 0 0 3px gold, 0 0 5px gold;
+            animation: fadeInOut 2s infinite;
+        }
+    </style>
+</head>
+<body>
+    <div class="chat-container" id="chat-container">
+        <div class="header">SENTIVERSE AI</div>
+        <div id="chat-box" class="chat-box"></div>
+        <div id="loading-indicator" class="loading" style="display: none;">SentiVerse AI is thinking...</div>
+        <div class="input-container">
+            <input type="text" id="user-input" placeholder="Type a message..." onkeypress="handleKeyPress(event)">
+            <button onclick="sendMessage()">SEND</button>
+        </div>
+    </div>
+
+    <script>
+        function sendMessage() {
+            let userInput = document.getElementById('user-input').value;
+            if (!userInput.trim()) return;
+
+            let chatBox = document.getElementById('chat-box');
+            let userMessage = document.createElement('div');
+            userMessage.className = 'message user-message';
+            userMessage.textContent = userInput;
+            chatBox.appendChild(userMessage);
+
+            // Show the loading indicator
+            let loadingIndicator = document.getElementById('loading-indicator');
+            loadingIndicator.style.display = 'block';
+
+            fetch('/chat', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: 'message=' + encodeURIComponent(userInput),
+            })
+            .then(response => response.json())
+            .then(data => {
+                // Hide the loading indicator
+                loadingIndicator.style.display = 'none';
+
+                let formattedContent = formatResponse(data.response);
+                let botMessage = document.createElement('div');
+                botMessage.className = 'message bot-message formatted-content';
+                botMessage.innerHTML = formattedContent;
+                chatBox.appendChild(botMessage);
+                chatBox.scrollTop = chatBox.scrollHeight;
+            });
+
+            document.getElementById('user-input').value = '';
+        }
+
+        function handleKeyPress(event) {
+            if (event.key === 'Enter') {
+                sendMessage();
+            }
+        }
+
+        function formatResponse(response) {
+            return response.replace(/(\*\*[^*]+\*\*)/g, (match) => {
+                return `<span class="title">${match.replace(/\*\*/g, '')}</span>`;
+            }).replace(/(\*[^\*]+\*)/g, (match) => {
+                return `<span class="description">${match.replace(/\*/g, '')}</span>`;
+            });
+        }
+    </script>
+</body>
+</html>
