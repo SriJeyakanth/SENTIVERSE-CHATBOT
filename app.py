@@ -110,4 +110,30 @@ def chat_response():
         return jsonify(response="Sorry, something went wrong. Please try again.")
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(debug=True)  
+
+import time
+
+def send_message_with_retry(chat, user_message, retries=3, delay=2):
+    for attempt in range(retries):
+        try:
+            response = chat.send_message(user_message)
+            return response.text
+        except ai.errors.ApiError as api_err:
+            app.logger.error(f"API Error on attempt {attempt + 1}: {api_err}")
+            time.sleep(delay)  # Wait before retrying
+        except Exception as e:
+            app.logger.error(f"General Error on attempt {attempt + 1}: {e}")
+            time.sleep(delay)  # Wait before retrying
+    return "Sorry, something went wrong. Please try again."
+
+@app.route('/chat', methods=['POST'])
+def chat_response():
+    user_message = request.form['message']
+    predefined_response = handle_message(user_message)
+    if predefined_response:
+        return jsonify(response=predefined_response)
+    
+    response_text = send_message_with_retry(chat, user_message)
+    return jsonify(response=response_text)
+
