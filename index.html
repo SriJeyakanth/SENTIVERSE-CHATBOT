@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SENTIVERSE AI</title>
+    <title>SYNOVA AI</title>
     <style>
         body { 
             font-family: Arial, sans-serif; 
@@ -130,7 +130,7 @@
     <div class="chat-container" id="chat-container">
         <div class="header">SENTIVERSE AI</div>
         <div id="chat-box" class="chat-box"></div>
-        <div id="loading-indicator" class="loading" style="display: none;">SentiVerse AI is thinking...</div>
+        <div id="loading-indicator" class="loading" style="display: none;">SYNOVA AI is thinking...</div>
         <div class="input-container">
             <input type="text" id="user-input" placeholder="Type a message..." onkeypress="handleKeyPress(event)">
             <button onclick="sendMessage()">SEND</button>
@@ -139,41 +139,41 @@
 
     <script>
         function sendMessage() {
-            let userInput = document.getElementById('user-input').value;
-            if (!userInput.trim()) return;
+    let userInput = document.getElementById('user-input').value;
+    if (!userInput.trim()) return;
 
-            let chatBox = document.getElementById('chat-box');
-            let userMessage = document.createElement('div');
-            userMessage.className = 'message user-message';
-            userMessage.textContent = userInput;
-            chatBox.appendChild(userMessage);
+    let chatBox = document.getElementById('chat-box');
+    let userMessage = document.createElement('div');
+    userMessage.className = 'message user-message';
+    userMessage.textContent = userInput;
+    chatBox.appendChild(userMessage);
 
-            // Show the loading indicator
-            let loadingIndicator = document.getElementById('loading-indicator');
-            loadingIndicator.style.display = 'block';
+    // Show the loading indicator
+    let loadingIndicator = document.getElementById('loading-indicator');
+    loadingIndicator.style.display = 'block';
 
-            fetch('/chat', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded',
-                },
-                body: 'message=' + encodeURIComponent(userInput),
-            })
-            .then(response => response.json())
-            .then(data => {
-                // Hide the loading indicator
-                loadingIndicator.style.display = 'none';
+    fetch('/get', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({user_input: userInput}),
+    })
+    .then(response => response.json())
+    .then(data => {
+        // Hide the loading indicator
+        loadingIndicator.style.display = 'none';
 
-                let formattedContent = formatResponse(data.response);
-                let botMessage = document.createElement('div');
-                botMessage.className = 'message bot-message formatted-content';
-                botMessage.innerHTML = formattedContent;
-                chatBox.appendChild(botMessage);
-                chatBox.scrollTop = chatBox.scrollHeight;
-            });
+        let formattedContent = formatResponse(data.bot_response);
+        let botMessage = document.createElement('div');
+        botMessage.className = 'message bot-message formatted-content';
+        botMessage.innerHTML = formattedContent;
+        chatBox.appendChild(botMessage);
+        chatBox.scrollTop = chatBox.scrollHeight;
+    });
 
-            document.getElementById('user-input').value = '';
-        }
+    document.getElementById('user-input').value = '';
+}
 
         function handleKeyPress(event) {
             if (event.key === 'Enter') {
